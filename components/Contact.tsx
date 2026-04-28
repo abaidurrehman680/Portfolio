@@ -27,12 +27,28 @@ export function Contact() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, message }),
       });
-      const data = (await res.json()) as { error?: string; code?: string };
+
+      let data: { error?: string; code?: string } = {};
+      const raw = await res.text();
+      try {
+        data = raw ? (JSON.parse(raw) as typeof data) : {};
+      } catch {
+        setErrorMessage(
+          "Server returned an invalid response. If you are on localhost, restart `npm run dev` after saving `.env.local`.",
+        );
+        setStatus("error");
+        return;
+      }
 
       if (!res.ok) {
         if (data.code === "MISSING_WEB3FORMS_KEY") {
           setErrorMessage(
             "Form email is not set up yet. Use the Email button or add WEB3FORMS_ACCESS_KEY for this site.",
+          );
+        } else if (data.code === "UPSTREAM_FETCH_FAILED") {
+          setErrorMessage(
+            data.error ||
+              "Email service could not be reached. Try disabling VPN, or test on mobile data.",
           );
         } else {
           setErrorMessage(data.error || "Something went wrong. Please try again.");
@@ -43,8 +59,12 @@ export function Contact() {
 
       setStatus("success");
       form.reset();
-    } catch {
-      setErrorMessage("Network error. Check your connection and try again.");
+    } catch (e) {
+      const msg =
+        e instanceof TypeError && e.message === "Failed to fetch"
+          ? "Could not reach this site’s server. Use http://localhost:3000 (not a file path), ensure `npm run dev` is running, and try again."
+          : "Network error. Check your connection and try again.";
+      setErrorMessage(msg);
       setStatus("error");
     }
   }
