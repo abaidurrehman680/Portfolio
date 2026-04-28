@@ -6,6 +6,24 @@ import { Mail, Send, Loader2 } from "lucide-react";
 import { IconGithub, IconLinkedin } from "@/components/BrandIcons";
 import { site } from "@/lib/content";
 
+const WEB3FORMS_URL = "https://api.web3forms.com/submit";
+
+type Web3FormsResponse = {
+  success?: boolean;
+  message?: string;
+  body?: { message?: string; data?: unknown };
+  statusCode?: number;
+  error?: string;
+};
+
+function web3formsMessage(data: Web3FormsResponse): string | undefined {
+  return (
+    data.body?.message ??
+    data.message ??
+    (typeof data.error === "string" ? data.error : undefined)
+  );
+}
+
 export function Contact() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -18,51 +36,63 @@ export function Contact() {
     const email = String(fd.get("email") ?? "").trim();
     const message = String(fd.get("message") ?? "").trim();
 
+    const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY?.trim();
+    if (!accessKey) {
+      setErrorMessage(
+        "Add NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY to .env.local (your Web3Forms access key), restart npm run dev, and on Vercel add the same variable then redeploy.",
+      );
+      setStatus("error");
+      return;
+    }
+
     setStatus("sending");
     setErrorMessage("");
 
+    const textBody = [`Name: ${name}`, `Email: ${email}`, "", "Message:", message].join("\n");
+
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch(WEB3FORMS_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, message }),
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          subject: `[Abaid.dev] Message from ${name}`,
+          from_name: name,
+          name,
+          email,
+          message: textBody,
+        }),
       });
 
-      let data: { error?: string; code?: string } = {};
       const raw = await res.text();
+      let data: Web3FormsResponse = {};
       try {
-        data = raw ? (JSON.parse(raw) as typeof data) : {};
+        data = raw ? (JSON.parse(raw) as Web3FormsResponse) : {};
       } catch {
         setErrorMessage(
-          "Server returned an invalid response. If you are on localhost, restart `npm run dev` after saving `.env.local`.",
+          "Email service sent an unexpected reply. Check your access key on web3forms.com.",
         );
         setStatus("error");
         return;
       }
 
-      if (!res.ok) {
-        if (data.code === "MISSING_WEB3FORMS_KEY") {
-          setErrorMessage(
-            "Form email is not set up yet. Use the Email button or add WEB3FORMS_ACCESS_KEY for this site.",
-          );
-        } else if (data.code === "UPSTREAM_FETCH_FAILED") {
-          setErrorMessage(
-            data.error ||
-              "Email service could not be reached. Try disabling VPN, or test on mobile data.",
-          );
-        } else {
-          setErrorMessage(data.error || "Something went wrong. Please try again.");
-        }
-        setStatus("error");
+      if (data.success === true) {
+        setStatus("success");
+        form.reset();
         return;
       }
 
-      setStatus("success");
-      form.reset();
-    } catch (e) {
+      setErrorMessage(
+        web3formsMessage(data) || "Could not send message. Check your access key or try again.",
+      );
+      setStatus("error");
+    } catch (err) {
       const msg =
-        e instanceof TypeError && e.message === "Failed to fetch"
-          ? "Could not reach this site’s server. Use http://localhost:3000 (not a file path), ensure `npm run dev` is running, and try again."
+        err instanceof TypeError && err.message === "Failed to fetch"
+          ? "Network blocked the request. Try another network or disable VPN."
           : "Network error. Check your connection and try again.";
       setErrorMessage(msg);
       setStatus("error");
