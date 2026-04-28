@@ -15,11 +15,14 @@ export const site = {
     "Building high-performance mobile, web & desktop ecosystems that scale.",
   summary: `High-achieving Software Engineer with 2+ years of experience and a 3.89 CGPA. Expert in architecting high-performance cross-platform ecosystems across mobile (Flutter, React Native), desktop (Electron + React), and web (MERN Stack). Currently driving production development at Massive Dynamics. Proven track record of shipping large-scale apps (60+ screens) with advanced AI integrations, real-time backends, and seamless UI/UX across iOS, Android, Mac, and Windows.`,
   social: {
-    github: "https://github.com/abaidurrehman",
-    linkedin: "https://linkedin.com/in/abaidurrehman",
+    github: "https://github.com/abaidurrehman680",
+    linkedin:
+      "https://www.linkedin.com/in/muhammad-abaid-ur-rehman-61099625a",
     email: "mailto:abaidurrehman680@gmail.com",
   },
-  cvPath: "/cv.pdf",
+  /** Generated PDF from /api/cv (no static file required). */
+  cvPath: "/api/cv",
+  cvDownloadName: "Muhammad-Abaid-Ur-Rehman-CV.pdf",
 } as const;
 
 export const platforms = [
@@ -203,7 +206,7 @@ export const projects = [
     description:
       "Complete tutoring ecosystem with mobile and web. Multi-role dashboards, real-time chat with file sharing, secure RBAC, and Firebase Authentication — live on Google Play.",
     liveBadge: true,
-    github: "https://github.com/abaidurrehman",
+    github: "https://github.com/abaidurrehman680",
     demo: "https://play.google.com/store/apps",
   },
   {
@@ -223,8 +226,8 @@ export const projects = [
     description:
       "Desktop HR app with timed screenshots, idle detection, salary PDFs, 3-role access, offline sync, location on login, and leave approvals with audit logs.",
     liveBadge: false,
-    github: "https://github.com/abaidurrehman",
-    demo: "https://github.com/abaidurrehman",
+    github: "https://github.com/abaidurrehman680",
+    demo: "https://github.com/abaidurrehman680",
   },
   {
     name: "InfluencePay",
@@ -234,8 +237,8 @@ export const projects = [
     description:
       "Large-scale influencer recruitment and brand management with AI matching, real-time Firestore, and a reusable custom widget system.",
     liveBadge: false,
-    github: "https://github.com/abaidurrehman",
-    demo: "https://github.com/abaidurrehman",
+    github: "https://github.com/abaidurrehman680",
+    demo: "https://github.com/abaidurrehman680",
   },
   {
     name: "Real-Time E-Commerce Mobile App",
@@ -245,8 +248,8 @@ export const projects = [
     description:
       "Production store with live cart sync, Supabase real-time inventory, and secure localized payments.",
     liveBadge: false,
-    github: "https://github.com/abaidurrehman",
-    demo: "https://github.com/abaidurrehman",
+    github: "https://github.com/abaidurrehman680",
+    demo: "https://github.com/abaidurrehman680",
   },
   {
     name: "Advanced Service Management Dashboard",
@@ -256,8 +259,8 @@ export const projects = [
     description:
       "High-speed dashboard for resource planning with hardened Firebase rules and optimized JSON pipelines.",
     liveBadge: false,
-    github: "https://github.com/abaidurrehman",
-    demo: "https://github.com/abaidurrehman",
+    github: "https://github.com/abaidurrehman680",
+    demo: "https://github.com/abaidurrehman680",
   },
   {
     name: "MERN Stack E-Commerce Platform",
@@ -267,8 +270,8 @@ export const projects = [
     description:
       "End-to-end commerce with secure auth, product management, Express API, and MongoDB persistence.",
     liveBadge: false,
-    github: "https://github.com/abaidurrehman",
-    demo: "https://github.com/abaidurrehman",
+    github: "https://github.com/abaidurrehman680",
+    demo: "https://github.com/abaidurrehman680",
   },
 ] as const;
 

@@ -134,7 +134,7 @@ export function Hero() {
           </Link>
           <a
             href={site.cvPath}
-            download
+            download={site.cvDownloadName}
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.03] px-6 py-3.5 text-sm font-semibold text-zinc-100 backdrop-blur-sm transition-all hover:border-indigo-500/40 hover:bg-white/[0.06] hover:shadow-[0_0_24px_rgba(99,102,241,0.2)]"
           >
             <Download className="h-4 w-4" />

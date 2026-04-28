@@ -2,17 +2,51 @@
 
 import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
-import { Mail, Send } from "lucide-react";
+import { Mail, Send, Loader2 } from "lucide-react";
 import { IconGithub, IconLinkedin } from "@/components/BrandIcons";
 import { site } from "@/lib/content";
 
 export function Contact() {
-  const [sent, setSent] = useState(false);
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSent(true);
-    window.setTimeout(() => setSent(false), 4000);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const name = String(fd.get("name") ?? "").trim();
+    const email = String(fd.get("email") ?? "").trim();
+    const message = String(fd.get("message") ?? "").trim();
+
+    setStatus("sending");
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, message }),
+      });
+      const data = (await res.json()) as { error?: string; code?: string };
+
+      if (!res.ok) {
+        if (data.code === "MISSING_WEB3FORMS_KEY") {
+          setErrorMessage(
+            "Form email is not set up yet. Use the Email button or add WEB3FORMS_ACCESS_KEY for this site.",
+          );
+        } else {
+          setErrorMessage(data.error || "Something went wrong. Please try again.");
+        }
+        setStatus("error");
+        return;
+      }
+
+      setStatus("success");
+      form.reset();
+    } catch {
+      setErrorMessage("Network error. Check your connection and try again.");
+      setStatus("error");
+    }
   }
 
   return (
@@ -53,6 +87,15 @@ export function Contact() {
               product teams. Reach out for Flutter, cross-platform, or full-stack
               collaborations.
             </p>
+            <p className="mt-4 text-sm text-zinc-500">
+              <span className="text-zinc-400">Email:</span>{" "}
+              <a
+                href={site.social.email}
+                className="text-indigo-300 hover:text-indigo-200 underline-offset-2 hover:underline"
+              >
+                abaidurrehman680@gmail.com
+              </a>
+            </p>
             <div className="mt-8 flex flex-wrap gap-3">
               {[
                 { href: site.social.github, icon: IconGithub, label: "GitHub" },
@@ -88,7 +131,9 @@ export function Contact() {
               <input
                 name="name"
                 required
-                className="mt-2 w-full rounded-xl border border-white/10 bg-[#0a0a0a]/80 px-4 py-3 text-sm text-white outline-none ring-indigo-500/40 transition-shadow placeholder:text-zinc-600 focus:ring-2"
+                disabled={status === "sending"}
+                autoComplete="name"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-[#0a0a0a]/80 px-4 py-3 text-sm text-white outline-none ring-indigo-500/40 transition-shadow placeholder:text-zinc-600 focus:ring-2 disabled:opacity-50"
                 placeholder="Your name"
               />
             </label>
@@ -98,7 +143,9 @@ export function Contact() {
                 name="email"
                 type="email"
                 required
-                className="mt-2 w-full rounded-xl border border-white/10 bg-[#0a0a0a]/80 px-4 py-3 text-sm text-white outline-none ring-indigo-500/40 transition-shadow placeholder:text-zinc-600 focus:ring-2"
+                disabled={status === "sending"}
+                autoComplete="email"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-[#0a0a0a]/80 px-4 py-3 text-sm text-white outline-none ring-indigo-500/40 transition-shadow placeholder:text-zinc-600 focus:ring-2 disabled:opacity-50"
                 placeholder="you@company.com"
               />
             </label>
@@ -108,23 +155,37 @@ export function Contact() {
                 name="message"
                 required
                 rows={4}
-                className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-[#0a0a0a]/80 px-4 py-3 text-sm text-white outline-none ring-indigo-500/40 transition-shadow placeholder:text-zinc-600 focus:ring-2"
+                disabled={status === "sending"}
+                className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-[#0a0a0a]/80 px-4 py-3 text-sm text-white outline-none ring-indigo-500/40 transition-shadow placeholder:text-zinc-600 focus:ring-2 disabled:opacity-50"
                 placeholder="Tell me about your project…"
               />
             </label>
             <motion.button
               type="submit"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-3.5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.3)] transition-all hover:brightness-110"
+              disabled={status === "sending"}
+              whileHover={status === "sending" ? undefined : { scale: 1.01 }}
+              whileTap={status === "sending" ? undefined : { scale: 0.99 }}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-3.5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.3)] transition-all hover:brightness-110 disabled:opacity-60"
             >
-              <Send className="h-4 w-4" />
-              Send message
+              {status === "sending" ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sending…
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Send message
+                </>
+              )}
             </motion.button>
-            {sent && (
+            {status === "success" && (
               <p className="mt-4 text-center text-sm text-emerald-400">
-                Thanks — I&apos;ll get back to you shortly.
+                Thanks — your message was sent. I&apos;ll reply soon.
               </p>
+            )}
+            {status === "error" && errorMessage && (
+              <p className="mt-4 text-center text-sm text-red-400">{errorMessage}</p>
             )}
           </motion.form>
         </div>
